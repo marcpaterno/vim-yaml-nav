@@ -1,0 +1,35 @@
+*yaml_nav.txt*  *yaml_nav*  YAML navigation plugin
+
+INTRODUCTION                                        *yaml_nav-intro*
+
+Provides navigation among YAML keys at the current indentation level.
+Works with both Vim 9 and Neovim.
+
+COMMANDS                                            *yaml_nav-commands*
+
+*:YamlKeysHere*
+    Populate the location list with all keys at the current indentation
+    level and open it.
+
+MAPPINGS                                            *yaml_nav-mappings*
+
+<leader>k       Calls |:YamlKeysHere|. Configurable; see |yaml_nav-config|.
+
+CONFIGURATION                                       *yaml_nav-config*
+
+*g:yaml_nav_no_mapping*
+    Set to 1 to suppress the default mapping entirely.
+    Example: >
+        let g:yaml_nav_no_mapping = 1
+<
+*g:yaml_nav_mapping*
+    Override the default mapping key. Default: '<leader>k'.
+    Example: >
+        let g:yaml_nav_mapping = '<leader>y'
+<
+
+AUTHOR                                              *yaml_nav-author*
+
+Marc Paterno (marcpaterno)
+
+vim:tw=78:ft=help:norl:
