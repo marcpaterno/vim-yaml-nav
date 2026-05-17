@@ -1,6 +1,7 @@
 # vim-yaml-nav
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-1.1.0-green.svg)](CHANGELOG.md)
 
 YAML navigation plugin for Vim 8+ and Neovim.
 

@@ -1,4 +1,4 @@
-*yaml_nav.txt*  *yaml_nav*  YAML navigation plugin
+*yaml_nav.txt*  *yaml_nav*  YAML navigation plugin      version 1.1.0
 
 INTRODUCTION                                        *yaml_nav-intro*
 
