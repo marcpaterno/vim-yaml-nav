@@ -1,0 +1,37 @@
+name: Test
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  test:
+    name: "${{ matrix.editor }} ${{ matrix.version }}"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { editor: vim,   neovim: false, version: stable  }
+          - { editor: nvim,  neovim: true,  version: stable  }
+          - { editor: nvim,  neovim: true,  version: nightly }
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup ${{ matrix.editor }}
+        id: vim
+        uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: ${{ matrix.neovim }}
+          version: ${{ matrix.version }}
+
+      - name: Run tests (default vim)
+        run: make test
+        env:
+          VIM: ${{ steps.vim.outputs.executable }}
+
+      - name: Run tests (Neovim)
+        if: matrix.neovim == true
+        run: make test-nvim

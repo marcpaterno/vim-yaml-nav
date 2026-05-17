@@ -1,0 +1,285 @@
+" =============================================================================
+" Tests for vim-yaml-nav
+" Run via: bash run-tests.sh
+" =============================================================================
+
+Before:
+  " Suppress the default key mapping so tests don't pollute the key map.
+  let g:yaml_nav_no_mapping = 1
+  " Clear any location list left over from a previous test.
+  call setloclist(0, [])
+
+After:
+  silent! lclose
+  call setloclist(0, [])
+  unlet! g:yaml_nav_no_mapping
+
+
+" =============================================================================
+" Basic: top-level siblings
+" =============================================================================
+
+Given yaml (three top-level keys):
+  foo: 1
+  bar: 2
+  baz: 3
+
+Execute (all three siblings appear in the location list):
+  normal! gg
+  YamlKeysHere
+  let ll = getloclist(0)
+  AssertEqual 3, len(ll)
+  AssertEqual 'foo', ll[0].text
+  AssertEqual 'bar', ll[1].text
+  AssertEqual 'baz', ll[2].text
+
+Execute (cursor on middle key still finds all siblings):
+  normal! 2G
+  YamlKeysHere
+  let ll = getloclist(0)
+  AssertEqual 3, len(ll)
+  AssertEqual 'foo', ll[0].text
+  AssertEqual 'bar', ll[1].text
+  AssertEqual 'baz', ll[2].text
+
+Execute (cursor on last key still finds all siblings):
+  normal! 3G
+  YamlKeysHere
+  let ll = getloclist(0)
+  AssertEqual 3, len(ll)
+  AssertEqual 'foo', ll[0].text
+  AssertEqual 'bar', ll[1].text
+  AssertEqual 'baz', ll[2].text
+
+
+" =============================================================================
+" Location list entry fields
+" =============================================================================
+
+Given yaml (entry field checks):
+  foo: 1
+  bar: 2
+
+Execute (lnum is the correct source line number):
+  normal! gg
+  YamlKeysHere
+  let ll = getloclist(0)
+  AssertEqual 1, ll[0].lnum
+  AssertEqual 2, ll[1].lnum
+
+Execute (col is always 1):
+  normal! gg
+  YamlKeysHere
+  let ll = getloclist(0)
+  AssertEqual 1, ll[0].col
+  AssertEqual 1, ll[1].col
+
+
+" =============================================================================
+" Single key in block
+" =============================================================================
+
+Given yaml (single top-level key):
+  only: value
+
+Execute (one entry in the location list):
+  normal! gg
+  YamlKeysHere
+  let ll = getloclist(0)
+  AssertEqual 1, len(ll)
+  AssertEqual 'only', ll[0].text
+
+
+" =============================================================================
+" Nested blocks: only sibling keys shown
+" =============================================================================
+
+Given yaml (nested block, cursor on child):
+  parent:
+    child1: a
+    child2: b
+
+Execute (cursor on child1 shows only child siblings):
+  normal! 2G
+  YamlKeysHere
+  let ll = getloclist(0)
+  AssertEqual 2, len(ll)
+  AssertEqual 'child1', ll[0].text
+  AssertEqual 'child2', ll[1].text
+
+Execute (cursor on parent shows only the parent-level key):
+  normal! 1G
+  YamlKeysHere
+  let ll = getloclist(0)
+  AssertEqual 1, len(ll)
+  AssertEqual 'parent', ll[0].text
+
+
+Given yaml (two parents each with children):
+  parent1:
+    child1: a
+    child2: b
+  parent2:
+    child3: c
+    child4: d
+
+Execute (cursor on child1 sees only parent1 children):
+  normal! 2G
+  YamlKeysHere
+  let ll = getloclist(0)
+  AssertEqual 2, len(ll)
+  AssertEqual 'child1', ll[0].text
+  AssertEqual 'child2', ll[1].text
+
+Execute (cursor on child3 sees only parent2 children):
+  normal! 5G
+  YamlKeysHere
+  let ll = getloclist(0)
+  AssertEqual 2, len(ll)
+  AssertEqual 'child3', ll[0].text
+  AssertEqual 'child4', ll[1].text
+
+Execute (cursor on parent1 sees both parent-level keys):
+  normal! 1G
+  YamlKeysHere
+  let ll = getloclist(0)
+  AssertEqual 2, len(ll)
+  AssertEqual 'parent1', ll[0].text
+  AssertEqual 'parent2', ll[1].text
+
+
+" =============================================================================
+" Blank lines between siblings (blank lines are absorbed)
+" =============================================================================
+
+Given yaml (blank lines between top-level siblings):
+  foo: 1
+
+  bar: 2
+
+Execute (both keys found despite blank line between them):
+  normal! gg
+  YamlKeysHere
+  let ll = getloclist(0)
+  AssertEqual 2, len(ll)
+  AssertEqual 'foo', ll[0].text
+  AssertEqual 'bar', ll[1].text
+
+Given yaml (blank lines between nested siblings):
+  parent:
+    child1: a
+
+    child2: b
+
+Execute (cursor on child1 finds both children across blank line):
+  normal! 2G
+  YamlKeysHere
+  let ll = getloclist(0)
+  AssertEqual 2, len(ll)
+  AssertEqual 'child1', ll[0].text
+  AssertEqual 'child2', ll[1].text
+
+
+" =============================================================================
+" Comment lines are excluded
+" =============================================================================
+
+Given yaml (comment at top level):
+  foo: 1
+  # this is a comment
+  bar: 2
+
+Execute (comment line excluded from location list):
+  normal! gg
+  YamlKeysHere
+  let ll = getloclist(0)
+  AssertEqual 2, len(ll)
+  AssertEqual 'foo', ll[0].text
+  AssertEqual 'bar', ll[1].text
+
+Given yaml (comment among nested children):
+  parent:
+    child1: a
+    # nested comment
+    child2: b
+
+Execute (comment excluded from nested location list):
+  normal! 2G
+  YamlKeysHere
+  let ll = getloclist(0)
+  AssertEqual 2, len(ll)
+  AssertEqual 'child1', ll[0].text
+  AssertEqual 'child2', ll[1].text
+
+
+" =============================================================================
+" Keys with hyphenated names
+" =============================================================================
+
+Given yaml (hyphenated keys):
+  some-key: 1
+  another-key: 2
+  yet-another: 3
+
+Execute (hyphenated keys are matched correctly):
+  normal! gg
+  YamlKeysHere
+  let ll = getloclist(0)
+  AssertEqual 3, len(ll)
+  AssertEqual 'some-key',    ll[0].text
+  AssertEqual 'another-key', ll[1].text
+  AssertEqual 'yet-another', ll[2].text
+
+
+" =============================================================================
+" Block at the bottom of the file
+" =============================================================================
+
+Given yaml (keys with nothing below):
+  alpha: 1
+  beta: 2
+  gamma: 3
+
+Execute (last line of file is scanned correctly):
+  normal! 3G
+  YamlKeysHere
+  let ll = getloclist(0)
+  AssertEqual 3, len(ll)
+  AssertEqual 'gamma', ll[2].text
+
+
+" =============================================================================
+" Mixed indentation depths don't bleed into each other
+" =============================================================================
+
+Given yaml (mixed depths):
+  top1:
+    mid1:
+      deep1: x
+      deep2: y
+    mid2: z
+  top2: w
+
+Execute (cursor on deep1 only sees deep siblings):
+  normal! 3G
+  YamlKeysHere
+  let ll = getloclist(0)
+  AssertEqual 2, len(ll)
+  AssertEqual 'deep1', ll[0].text
+  AssertEqual 'deep2', ll[1].text
+
+Execute (cursor on mid1 only sees mid-level siblings):
+  normal! 2G
+  YamlKeysHere
+  let ll = getloclist(0)
+  AssertEqual 2, len(ll)
+  AssertEqual 'mid1', ll[0].text
+  AssertEqual 'mid2', ll[1].text
+
+Execute (cursor on top1 only sees top-level siblings):
+  normal! 1G
+  YamlKeysHere
+  let ll = getloclist(0)
+  AssertEqual 2, len(ll)
+  AssertEqual 'top1', ll[0].text
+  AssertEqual 'top2', ll[1].text

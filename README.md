@@ -24,6 +24,17 @@ Or with [vim-plug](https://github.com/junegunn/vim-plug):
 Plug 'marcpaterno/vim-yaml-nav'
 ```
 
+## Running tests
+
+This plugin includes a test suite. Run tests with `make`:
+
+```bash
+make test-vim   # run tests with vim only
+make test-nvim  # run tests with Neovim only
+make all        # run tests with both vim and neovim
+make clean      # remove temporary files
+```
+
 ## Usage
 
 With the cursor anywhere inside a YAML block, run `:YamlKeysHere` or press
