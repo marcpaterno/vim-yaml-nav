@@ -1,0 +1,70 @@
+" =============================================================================
+" Tests for [k / ]k — prev/next sibling motions
+" =============================================================================
+
+Before:
+  let g:yaml_nav_no_mapping = 1
+
+After:
+  unlet! g:yaml_nav_no_mapping
+
+
+Given yaml (prev/next basic):
+  foo: 1
+  bar: 2
+  baz: 3
+
+Execute ([k jumps to previous key):
+  normal! 3G
+  normal [k
+  AssertEqual 2, line('.')
+
+Execute (]k jumps to next key):
+  normal! 1G
+  normal ]k
+  AssertEqual 2, line('.')
+
+Execute ([k at first key stays on first key):
+  normal! 1G
+  normal [k
+  AssertEqual 1, line('.')
+
+Execute (]k at last key stays on last key):
+  normal! 3G
+  normal ]k
+  AssertEqual 3, line('.')
+
+
+Given yaml (prev/next nested):
+  parent:
+    child1: a
+    child2: b
+    child3: c
+
+Execute (nested ]k moves forward one sibling):
+  normal! 3G
+  normal ]k
+  AssertEqual 4, line('.')
+
+Execute (nested [k moves back one sibling):
+  normal! 3G
+  normal [k
+  AssertEqual 2, line('.')
+
+
+Given yaml (prev/next with blank lines):
+  foo: 1
+
+  bar: 2
+
+  baz: 3
+
+Execute ([k spans blank lines):
+  normal! 5G
+  normal [k
+  AssertEqual 3, line('.')
+
+Execute (]k spans blank lines):
+  normal! 1G
+  normal ]k
+  AssertEqual 3, line('.')

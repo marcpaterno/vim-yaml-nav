@@ -1,7 +1,12 @@
 # Makefile for vim-yaml-nav tests
-# Usage: make all        # run tests with both vim and neovim
-#        make test-vim   # run tests with vim only
-#        make test-nvim  # run tests with Neovim only
+# Usage: make all              # run all tests with both vim and neovim
+#        make test-vim         # run all tests with vim
+#        make test-nvim        # run all tests with neovim
+#        make test-keys-here   # run :YamlKeysHere tests only
+#        make test-prev-next   # run [k/]k motion tests only
+#        make test-key-path    # run :YamlKeyPath tests only
+#        make test-nav-path    # run YamlNavPath() tests only
+#        make clean            # remove temporary files
 
 VADER_DIR ?= /tmp/vader
 REPO_ROOT := $(shell pwd)
@@ -16,22 +21,37 @@ ifeq ($(VIM),)
   VIM := $(shell which vim)
 endif
 
+NVIM := $(shell which nvim)
+
 # Check if Neovim
 IS_NVIM := $(shell $(VIM) --version 2>/dev/null | grep -q NVIM && echo yes || echo no)
 
-# Test runner command
-TEST_CMD := $(VIM) --version 2>/dev/null | head -1
-
 # Vim flags
 ifeq ($(IS_NVIM),yes)
-  # Neovim: --headless mode (avoids E484 syntax.vim issues)
   VIM_FLAGS := --headless -Nu
 else
-  # Vim: -Es mode (silent batch)
   VIM_FLAGS := -Es -Nu
 endif
 
-.PHONY: all test-vim test-nvim clean
+# Helper macro: run a single test file with vim
+define run_vim
+	@echo "Running $(notdir $(1)) with: $$( $(VIM) --version 2>/dev/null | head -1 )"
+	@$(VIM) $(VIM_FLAGS) $(REPO_ROOT)/.vimrc \
+		-c 'Vader! $(1)' \
+		-c 'qa!' 2>&1
+endef
+
+# Helper macro: run a single test file with nvim
+define run_nvim
+	@echo "Running $(notdir $(1)) with: nvim"
+	@$(NVIM) --headless -Nu $(REPO_ROOT)/.vimrc \
+		-c 'Vader! $(1)' \
+		-c 'qa!' 2>&1
+endef
+
+.PHONY: all test-vim test-nvim \
+        test-keys-here test-prev-next test-key-path test-nav-path \
+        clean
 
 all: test-vim test-nvim
 
@@ -41,12 +61,23 @@ test-vim: vader $(REPO_ROOT)/.vimrc
 		-c 'Vader! $(REPO_ROOT)/test/*.vader' \
 		-c 'qa!' 2>&1
 
-test-nvim: VIM := $(shell which nvim)
 test-nvim: vader $(REPO_ROOT)/.vimrc
 	@echo "Running tests with: nvim"
-	@$(VIM) --headless -Nu $(REPO_ROOT)/.vimrc \
+	@$(NVIM) --headless -Nu $(REPO_ROOT)/.vimrc \
 		-c 'Vader! $(REPO_ROOT)/test/*.vader' \
 		-c 'qa!' 2>&1
+
+test-keys-here: vader $(REPO_ROOT)/.vimrc
+	$(call run_vim,$(REPO_ROOT)/test/keys_here.vader)
+
+test-prev-next: vader $(REPO_ROOT)/.vimrc
+	$(call run_vim,$(REPO_ROOT)/test/prev_next.vader)
+
+test-key-path: vader $(REPO_ROOT)/.vimrc
+	$(call run_vim,$(REPO_ROOT)/test/key_path.vader)
+
+test-nav-path: vader $(REPO_ROOT)/.vimrc
+	$(call run_vim,$(REPO_ROOT)/test/nav_path.vader)
 
 # Create a minimal vimrc for tests
 $(REPO_ROOT)/.vimrc: | vader

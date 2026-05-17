@@ -13,8 +13,14 @@ COMMANDS                                            *yaml_nav-commands*
 *:YamlKeysHere*
     Populate the location list with all keys at the current indentation
     level and open it.
-    
+
     Blank lines and comment lines are excluded from the location list.
+    Location list entries report column 1 (start of line).
+    The command is buffer-local and only active in YAML buffers.
+
+*:YamlKeyPath*
+    Echo the full dotted ancestor path from the root key down to the key
+    under the cursor (e.g. "services.api.env").
     The command is buffer-local and only active in YAML buffers.
 
 MAPPINGS                                            *yaml_nav-mappings*
@@ -22,11 +28,41 @@ MAPPINGS                                            *yaml_nav-mappings*
 <leader>k       Calls |:YamlKeysHere|. Configurable; see |yaml_nav-config|.
                 Buffer-local; only active in YAML buffers.
 
+[k              Jump to the previous sibling key at the same indentation
+                level. Stays put when already on the first sibling.
+                Configurable via |g:yaml_nav_prev_mapping|.
+                Buffer-local; only active in YAML buffers.
+
+]k              Jump to the next sibling key at the same indentation level.
+                Stays put when already on the last sibling.
+                Configurable via |g:yaml_nav_next_mapping|.
+                Buffer-local; only active in YAML buffers.
+
+FUNCTIONS                                           *yaml_nav-functions*
+
+*YamlNavPath()*
+    Returns the full dotted ancestor path for the key under the cursor as
+    a string (e.g. "services.api.env"). Returns an empty string when the
+    cursor is not on a key line or the buffer is not a YAML file.
+
+    Intended for use in statuslines: >
+        set statusline+=%{YamlNavPath()}
+<
+    In Neovim with lualine: >
+        require('lualine').setup {
+          sections = {
+            lualine_c = {
+              { function() return vim.fn.YamlNavPath() end }
+            }
+          }
+        }
+<
+
 CONFIGURATION                                       *yaml_nav-config*
 
 *g:yaml_nav_no_mapping*
-    Set to 1 to suppress the default mapping entirely. When set, the
-    g:yaml_nav_mapping option is ignored.
+    Set to 1 to suppress the default <leader>k mapping entirely. When set,
+    g:yaml_nav_mapping is ignored. The [k and ]k motions are unaffected.
     Example: >
         let g:yaml_nav_no_mapping = 1
 <
@@ -35,6 +71,18 @@ CONFIGURATION                                       *yaml_nav-config*
     Ignored if g:yaml_nav_no_mapping is set to 1.
     Example: >
         let g:yaml_nav_mapping = '<leader>y'
+<
+*g:yaml_nav_prev_mapping*
+    Override the mapping key for jumping to the previous sibling key.
+    Default: '[k'.
+    Example: >
+        let g:yaml_nav_prev_mapping = '[y'
+<
+*g:yaml_nav_next_mapping*
+    Override the mapping key for jumping to the next sibling key.
+    Default: ']k'.
+    Example: >
+        let g:yaml_nav_next_mapping = ']y'
 <
 
 AUTHOR                                              *yaml_nav-author*

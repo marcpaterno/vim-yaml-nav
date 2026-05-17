@@ -1,12 +1,9 @@
 " =============================================================================
-" Tests for vim-yaml-nav
-" Run via: bash run-tests.sh
+" Tests for :YamlKeysHere — location list of sibling keys
 " =============================================================================
 
 Before:
-  " Suppress the default key mapping so tests don't pollute the key map.
   let g:yaml_nav_no_mapping = 1
-  " Clear any location list left over from a previous test.
   call setloclist(0, [])
 
 After:

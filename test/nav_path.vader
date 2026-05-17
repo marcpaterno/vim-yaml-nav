@@ -1,0 +1,50 @@
+" =============================================================================
+" Tests for YamlNavPath() — statusline function
+" =============================================================================
+
+Before:
+  let g:yaml_nav_no_mapping = 1
+
+After:
+  unlet! g:yaml_nav_no_mapping
+
+
+Given yaml (statusline top-level):
+  foo: 1
+  bar: 2
+
+Execute (YamlNavPath returns top-level key name):
+  normal! 1G
+  AssertEqual 'foo', YamlNavPath()
+
+  normal! 2G
+  AssertEqual 'bar', YamlNavPath()
+
+
+Given yaml (statusline nested):
+  parent:
+    child: 1
+
+Execute (YamlNavPath returns dotted path for nested key):
+  normal! 2G
+  AssertEqual 'parent.child', YamlNavPath()
+
+
+Given yaml (statusline three levels):
+  top:
+    mid:
+      deep: 1
+
+Execute (YamlNavPath returns full path for three-level key):
+  normal! 3G
+  AssertEqual 'top.mid.deep', YamlNavPath()
+
+
+Given yaml (statusline on comment line):
+  foo: 1
+  # a comment
+  bar: 2
+
+Execute (YamlNavPath returns empty string on a comment line):
+  normal! 2G
+  AssertEqual '', YamlNavPath()

@@ -1,0 +1,57 @@
+" =============================================================================
+" Tests for :YamlKeyPath — echo dotted ancestor path
+" =============================================================================
+
+Before:
+  let g:yaml_nav_no_mapping = 1
+
+After:
+  unlet! g:yaml_nav_no_mapping
+
+
+Given yaml (top-level key path):
+  foo: 1
+  bar: 2
+
+Execute (YamlKeyPath on a top-level key returns just that key):
+  normal! 1G
+  let path = execute('YamlKeyPath')
+  AssertEqual 'foo', trim(path)
+
+
+Given yaml (nested key path):
+  parent:
+    child: 1
+
+Execute (YamlKeyPath on a nested key returns dotted path):
+  normal! 2G
+  let path = execute('YamlKeyPath')
+  AssertEqual 'parent.child', trim(path)
+
+
+Given yaml (three-level key path):
+  top:
+    mid:
+      deep: 1
+
+Execute (YamlKeyPath on a three-level key returns full dotted path):
+  normal! 3G
+  let path = execute('YamlKeyPath')
+  AssertEqual 'top.mid.deep', trim(path)
+
+
+Given yaml (key path with siblings):
+  alpha:
+    x: 1
+    y: 2
+  beta:
+    z: 3
+
+Execute (YamlKeyPath reflects correct branch):
+  normal! 2G
+  let path = execute('YamlKeyPath')
+  AssertEqual 'alpha.x', trim(path)
+
+  normal! 5G
+  let path = execute('YamlKeyPath')
+  AssertEqual 'beta.z', trim(path)
