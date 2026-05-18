@@ -68,3 +68,40 @@ Execute (]k spans blank lines):
   normal! 1G
   normal ]k
   AssertEqual 3, line('.')
+
+
+Given yaml (prev/next with comment lines):
+  foo: 1
+  # comment
+  bar: 2
+  baz: 3
+
+Execute ([k skips comments):
+  normal! 5G
+  normal [k
+  AssertEqual 3, line('.')
+
+Execute (]k skips comments):
+  normal! 1G
+  normal ]k
+  AssertEqual 3, line('.')
+
+
+Given yaml (prev/next cursor column preserved):
+  foo: aaa
+  bar: bbb
+  baz: ccc
+
+Execute ([k preserves cursor column):
+  normal! 3G
+  call cursor(3, 5)
+  normal [k
+  AssertEqual 2, line('.')
+  AssertEqual 5, col('.')
+
+Execute (]k preserves cursor column):
+  normal! 1G
+  call cursor(1, 4)
+  normal ]k
+  AssertEqual 2, line('.')
+  AssertEqual 4, col('.')

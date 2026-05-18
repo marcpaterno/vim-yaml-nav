@@ -82,12 +82,13 @@ endfunction
 function! s:YamlJumpPrev() abort
   let l:line = line('.')
   let l:indent = indent(l:line)
+  let l:cur_col = col('.')
 
   let l:first = 1
   let l:last = line('$')
 
-  " Scan upward for the first key at current indent level
   let l:start_key = 0
+  let l:start_col = 1
   for l:i in range(l:first, l:last)
     if l:i >= l:line
       break
@@ -99,23 +100,24 @@ function! s:YamlJumpPrev() abort
     if indent(l:i) == l:indent
       if l:ln =~ '^\s*\zs[^:]\+\ze:'
         let l:start_key = l:i
+        let l:start_col = l:cur_col
       endif
     endif
   endfor
 
   if l:start_key > 0
-    call cursor(l:start_key, 1)
+    call cursor(l:start_key, l:start_col)
   endif
 endfunction
 
 function! s:YamlJumpNext() abort
   let l:line = line('.')
   let l:indent = indent(l:line)
+  let l:cur_col = col('.')
 
   let l:first = 1
   let l:last = line('$')
 
-  " Scan downward for the first key at current indent level after current line
   for l:i in range(l:line + 1, l:last)
     let l:ln = getline(l:i)
     if l:ln =~ '^\s*$' || l:ln =~ '^\s*#'
@@ -123,7 +125,7 @@ function! s:YamlJumpNext() abort
     endif
     if indent(l:i) == l:indent
       if l:ln =~ '^\s*\zs[^:]\+\ze:'
-        call cursor(l:i, 1)
+        call cursor(l:i, l:cur_col)
         return
       endif
     endif
